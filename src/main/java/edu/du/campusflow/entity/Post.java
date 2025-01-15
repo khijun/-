@@ -18,16 +18,16 @@ public class Post {
     @Column(name = "post_id")
     private Long postId;
 
-    @ManyToOne(fetch = FetchType.LAZY) // Department와의 Many-to-One 관계
+    @ManyToOne(fetch = FetchType.LAZY) // Dept와의 Many-to-One 관계
     @JoinColumn(name = "dept_id") // 외래 키 설정
-    private Dept department; // 학과 엔티티
+    private Dept dept; // 학과 엔티티
 
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY) // 자기 참조 관계
-    @JoinColumn(name = "related_post_id") // 외래 키 설정
+    @JoinColumn(name = "related_post") // 외래 키 설정
     private Post relatedPost; // 관련 게시물 엔티티 (댓글)
 
     @Column(name = "title", length = 100)

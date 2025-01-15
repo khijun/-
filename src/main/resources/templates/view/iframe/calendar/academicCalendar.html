@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학사 일정</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .month-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin: 30px 0;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .schedule-list {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .schedule-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        .schedule-item:hover {
+            background-color: #e9ecef;
+            transform: translateX(10px);
+        }
+        .schedule-date {
+            font-weight: bold;
+            color: #007bff;
+            margin-right: 10px;
+        }
+        .month-nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .month-nav button {
+            margin: 0 10px;
+        }
+        .current-month {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="month-nav">
+        <button class="btn btn-outline-primary" onclick="changeMonth(-1)">이전 달</button>
+        <span class="current-month mx-3">2024년 1월</span>
+        <button class="btn btn-outline-primary" onclick="changeMonth(1)">다음 달</button>
+    </div>
+    
+    <h1 class="month-title">1월 학사일정</h1>
+    
+    <div class="schedule-list" id="scheduleList">
+        <!-- 일정 목록이 여기에 동적으로 추가됨 -->
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+<script>
+    let currentDate = moment();
+
+    function updateCalendar() {
+        // 월 표시 업데이트
+        $('.month-title').text(currentDate.format('M월 학사일정'));
+        $('.current-month').text(currentDate.format('YYYY년 M월'));
+
+        // API로 해당 월의 일정 가져오기
+        $.ajax({
+            url: '/calendar/api/academic-calendar',
+            type: 'GET',
+            success: function(response) {
+                const scheduleList = $('#scheduleList');
+                scheduleList.empty();
+
+                // 현재 월의 일정만 필터링
+                const currentMonthEvents = response.filter(event => 
+                    moment(event.startDate).format('YYYY-MM') === currentDate.format('YYYY-MM')
+                );
+
+                // 날짜순으로 정렬
+                currentMonthEvents.sort((a, b) => 
+                    moment(a.startDate).valueOf() - moment(b.startDate).valueOf()
+                );
+
+                // 일정 목록 생성
+                currentMonthEvents.forEach(event => {
+                    const startDate = moment(event.startDate);
+                    const endDate = moment(event.endDate);
+                    const dateRange = startDate.date() === endDate.date() 
+                        ? `${startDate.date()}일` 
+                        : `${startDate.date()}~${endDate.date()}일`;
+
+                    const scheduleItem = $('<div>')
+                        .addClass('schedule-item')
+                        .html(`
+                            <span class="schedule-date">${dateRange}</span>
+                            <span class="schedule-title">${event.title}</span>
+                            ${event.description ? `<p class="mt-2 mb-0 text-muted">${event.description}</p>` : ''}
+                        `);
+                    scheduleList.append(scheduleItem);
+                });
+
+                // 일정이 없는 경우 메시지 표시
+                if (currentMonthEvents.length === 0) {
+                    scheduleList.append('<div class="text-center text-muted">이번 달 일정이 없습니다.</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('일정을 불러오는데 실패했습니다:', error);
+                $('#scheduleList').html('<div class="text-center text-danger">일정을 불러오는데 실패했습니다.</div>');
+            }
+        });
+    }
+
+    function changeMonth(delta) {
+        currentDate.add(delta, 'months');
+        updateCalendar();
+    }
+
+    // 초기 로드
+    $(document).ready(function() {
+        updateCalendar();
+    });
+</script>
+</body>
+</html>
+

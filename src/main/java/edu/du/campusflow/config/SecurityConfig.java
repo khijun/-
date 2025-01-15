@@ -57,7 +57,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-//                .antMatchers("/js/**", "/css/**").permitAll() // 정적 리소스 허용
+                .antMatchers("/js/**", "/css/**").permitAll() // 정적 리소스 허용
 //                .antMatchers("/login").permitAll() // 로그인 페이지 허용
 //                .anyRequest().authenticated() // 그 외 요청은 인증 필요
                 .anyRequest().permitAll() // 실험코드

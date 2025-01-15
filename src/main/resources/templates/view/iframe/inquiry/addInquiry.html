@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>문의글 작성</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+  <h2>문의글 작성</h2>
+  <form th:action="@{/iframe/inquiry}" method="post">
+    <div class="form-group">
+      <label for="subject">제목</label>
+      <input type="text" class="form-control" id="subject" name="subject" required>
+    </div>
+    <div class="form-group">
+      <label for="content">내용</label>
+      <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">작성</button>
+    <a th:href="@{/iframe/inquiry/view}" class="btn btn-secondary">취소</a>
+  </form>
+</div>
+</body>
+</html>

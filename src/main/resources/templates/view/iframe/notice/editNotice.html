@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항 수정</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .form-group label {
+            font-weight: bold;
+        }
+        .content-area {
+            min-height: 300px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>공지사항 수정</h2>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/iframe/notice/edit/{id}(id=${notice.noticeId})}" method="post">
+                <div class="form-group">
+                    <label for="subject">제목</label>
+                    <input type="text" class="form-control" id="subject" name="subject"
+                           th:value="${notice.subject}" required>
+                </div>
+                <div class="form-group">
+                    <label for="content">내용</label>
+                    <textarea class="form-control content-area" id="content" name="content"
+                              rows="10" required th:text="${notice.content}"></textarea>
+                </div>
+                <div class="form-group text-right">
+                    <a th:href="@{/iframe/notice/{id}(id=${notice.noticeId})}" class="btn btn-secondary">취소</a>
+                    <button type="submit" class="btn btn-primary">수정완료</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html> 

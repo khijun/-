@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학사 일정</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+  <style>
+    .fc-event {
+      cursor: pointer;
+    }
+    .modal-body p {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="container mt-5">
+  <h1 class="text-center mb-4">학사 일정</h1>
+  <div id="calendar"></div>
+</div>
+
+<!-- 일정 상세 보기 모달 -->
+<div class="modal fade" id="eventModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">일정 상세</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><strong>제목:</strong> <span id="eventTitle"></span></p>
+        <p><strong>시작일:</strong> <span id="eventStart"></span></p>
+        <p><strong>종료일:</strong> <span id="eventEnd"></span></p>
+        <p><strong>설명:</strong> <span id="eventDescription"></span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/ko.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $('#calendar').fullCalendar({
+      header: {
+        left: 'prev,next today',
+        center: 'title',
+
+      },
+      defaultView: 'month',
+      allDayDefault: true,
+      displayEventEnd: true,
+      locale: 'ko' ,
+
+      events: function(start, end, timezone, callback) {
+        $.ajax({
+          url: '/iframe/calendar/api/academic-calendar',
+          type: 'GET',
+          success: function(response) {
+            var events = response.map(function(event) {
+              return {
+                id: event.calendarId,
+                title: event.title.replace(/^\d+a\s*/, ''),
+                start: moment(event.startDate).format('YYYY-MM-DD'),
+                end: moment(event.endDate).format('YYYY-MM-DD'),
+                description: event.description,
+                allDay: true
+              };
+            });
+            callback(events);
+          },
+          error: function(xhr, status, error) {
+            console.error('Calendar load error:', {
+              status: status,
+              error: error,
+              response: xhr.responseText
+            });
+            alert('일정을 불러오는데 실패했습니다.');
+          }
+        });
+      },
+      eventClick: function(event) {
+        // 일정 클릭 시 모달에 정보 표시
+        $('#eventTitle').text(event.title);
+        $('#eventStart').text(moment(event.start).format('YYYY년 MM월 DD일'));
+        $('#eventEnd').text(moment(event.end).format('YYYY년 MM월 DD일'));
+        $('#eventDescription').text(event.description || '설명 없음');
+        $('#eventModal').modal('show');
+      },
+      dayRender: function(date, cell) {
+        // 토요일과 일요일에 배경색 적용
+        if (date.day() === 6) { // 토요일
+          cell.css("background-color", "rgba(0, 123, 255, 0.5)");
+          cell.css("color", "white");
+        } else if (date.day() === 0) { // 일요일
+          cell.css("background-color", "rgba(220, 53, 69, 0.5)");
+          cell.css("color", "white");
+        }
+      }
+    });
+  });
+</script>
+</body>
+</html>

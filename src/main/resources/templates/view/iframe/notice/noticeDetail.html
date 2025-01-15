@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항 상세</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .notice-header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .notice-content {
+            min-height: 200px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background-color: white;
+        }
+        .notice-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="notice-header">
+        <h2 th:text="${notice.subject}"></h2>
+        <p>
+            <span th:text="|번호: ${notice.noticeId}|"></span> |
+            <span th:text="|작성자: ${notice.member.name}|"></span> |
+            <span th:text="|등록일: ${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}|"></span>
+        </p>
+    </div>
+        </div>
+    </div>
+
+    <div class="notice-content">
+        <p th:text="${notice.content}" style="white-space: pre-line;"></p>
+    </div>
+
+    <div class="notice-footer">
+        <div class="row">
+            <div class="col">
+                <a href="/iframe/notice/view" class="btn btn-secondary">목록으로</a>
+            </div>
+            <!-- 교직원인 경우에만 수정/삭제 버튼 표시 -->
+            <div class="col text-right" th:if="${isStaff}">
+                <a th:href="@{/iframe/notice/edit/{id}(id=${notice.noticeId})}" class="btn btn-primary">수정</a>
+                <form th:action="@{/iframe/notice/delete/{id}(id=${notice.noticeId})}" method="post" style="display: inline;" onsubmit="return confirm('정말로 삭제하시겠습니까?');">
+                    <button type="submit" class="btn btn-danger">삭제</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html> 

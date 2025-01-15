@@ -16,7 +16,7 @@ public class FileInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "file_id")
-    private Long id;  // 복합키로 FileId 클래스를 사용
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "member_id")

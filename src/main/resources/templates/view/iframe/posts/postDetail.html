@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>게시물 상세</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 100%;
+      padding: 15px;
+      margin: 0 auto;
+    }
+    @media (min-width: 768px) {
+      .container {
+        max-width: 90%;
+      }
+    }
+    .card {
+      border: 1px solid rgba(0,0,0,.125);
+      border-radius: 0.25rem;
+      margin-bottom: 1rem;
+      background-color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .card-header {
+      background-color: #fff;
+      border-bottom: 1px solid rgba(0,0,0,.125);
+      padding: 1rem;
+    }
+    .card-body {
+      padding: 1.25rem;
+    }
+    .card-text, .comment-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+    .card-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      word-break: break-word;
+    }
+    .post-info {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-bottom: 0;
+    }
+    .comment-section {
+      margin-top: 2rem;
+      background-color: #fff;
+      padding: 1.5rem;
+      border-radius: 0.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .comment-form {
+      margin-bottom: 2rem;
+    }
+    .comment-textarea {
+      resize: none;
+      min-height: 80px;
+      border: 1px solid #ced4da;
+      border-radius: 0.25rem;
+      padding: 0.75rem;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    .comment-card {
+      border: 1px solid #e9ecef;
+      border-radius: 0.25rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background-color: #f8f9fa;
+    }
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .comment-content {
+      padding: 0.5rem 0;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    .comment-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 0.5rem;
+    }
+    .btn-delete {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container mt-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">학사</li>
+      <li class="breadcrumb-item">학생게시판</li>
+      <li class="breadcrumb-item"><a th:href="@{/iframe/posts/view}">학과 게시판</a></li>
+      <li class="breadcrumb-item active">게시물 상세</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>게시물 상세</h2>
+    <a th:href="@{/iframe/posts/view}" class="btn btn-secondary">목록으로</a>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title" th:text="${post.title}">제목</h3>
+      <div class="d-flex justify-content-between align-items-center post-info">
+        <span>작성자: 익명</span>
+        <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <p class="card-text" th:text="${post.content}">내용</p>
+    </div>
+  </div>
+
+  <div class="comment-section">
+    <div class="comment-form">
+      <h4 class="mb-3">댓글 작성</h4>
+      <form th:action="@{/iframe/posts/{postId}/comments(postId=${post.postId})}" method="post" id="commentForm" onsubmit="return handleSubmit(event)">
+        <textarea name="content" class="comment-textarea" id="commentInput" 
+                  placeholder="댓글을 입력하세요" required></textarea>
+        <button type="submit" class="btn btn-primary" id="submitButton">댓글 등록</button>
+      </form>
+    </div>
+
+    <div th:each="comment : ${post.comments}" class="comment-card">
+      <div class="comment-header">
+        <span class="text-muted">익명</span>
+        <small th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</small>
+      </div>
+      <div class="comment-content" th:text="${comment.content}">댓글 내용</div>
+      <div class="comment-footer">
+        <form th:if="${@postService.isCommentAuthor(comment)}" 
+              th:action="@{/iframe/posts/{postId}/comments/{commentId}/delete(postId=${post.postId}, commentId=${comment.postId})}" 
+              method="post">
+          <button type="button" class="btn btn-danger btn-delete" onclick="confirmDelete(this.form)">삭제</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const commentForm = document.getElementById('commentForm');
+  const commentInput = document.getElementById('commentInput');
+  const submitButton = document.getElementById('submitButton');
+  let isSubmitting = false;
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    
+    if (isSubmitting) {
+      return false;
+    }
+
+    const content = commentInput.value.trim();
+    if (!content) {
+      return false;
+    }
+
+    isSubmitting = true;
+    submitButton.disabled = true;
+    submitButton.textContent = '등록 중...';
+
+    // 입력 필드 초기화
+    commentInput.value = '';
+
+    // 폼 제출
+    commentForm.submit();
+    
+    // 3초 후에 버튼 상태 복구 (서버 응답 실패 대비)
+    setTimeout(() => {
+      isSubmitting = false;
+      submitButton.disabled = false;
+      submitButton.textContent = '댓글 등록';
+    }, 3000);
+
+    return true;
+  }
+  
+  commentInput.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      if (!isSubmitting) {
+        handleSubmit(event);
+      }
+    }
+  });
+
+  function confirmDelete(form) {
+    if (confirm("정말로 댓글을 삭제하시겠습니까?")) {
+      if (!isSubmitting) {
+        isSubmitting = true;
+        form.submit();
+      }
+    }
+  }
+
+  // 페이지 로드/새로고침 시 상태 초기화
+  window.onload = function() {
+    isSubmitting = false;
+    submitButton.disabled = false;
+    submitButton.textContent = '댓글 등록';
+    commentInput.value = '';
+  };
+</script>
+</body>
+</html>
